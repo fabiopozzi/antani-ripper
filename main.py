@@ -10,12 +10,16 @@ def main(argv):
     #if len(sys.argv) < 2:
         #sys.exit('Missing arguments')
 
-    #music_path = sys.argv[1]
-
-    #tracknames = os.listdir(music_path)
-
-    cd = audiotools.cdio.CDDAReader("/dev/cdrom")
+    cd = audiotools.cdio.CDDAReader("/dev/cdrom", True)
     cd_infos = audiotools.cddareader_metadata_lookup(cd)
+
+    track_offsets = cd.track_offsets
+    tracks_to_rip = list(sorted(track_offsets.keys()))
+    input_filenames=[
+        audiotools.Filename("track%2.2d.cdda.wav" % (i))
+        for i in tracks_to_rip]
+    #list of filename objects e.g.['track02.cdda.wav', 'track03.cdda.wav']
+    print input_filenames
     #print "extracting track infos"
     #for result in cd_infos[0]:
         #print result
@@ -27,6 +31,34 @@ def main(argv):
     print "album name is %s" % album
     print "album author is %s" % artist
 
+    #sys.exit("aaa")
+
+    crea_cartelle(artist, album)
+
+    fstr = "%(track_name)s.%(suffix)s"
+    AudioType = audiotools.TYPE_MAP["flac"] #flac is hardcoded
+
+    # rippa le tracce del CD dentro quella cartella
+    #rip_cmd = ['cd2track', '-t', 'flac', '-d', flac_fpath, '--format="%(track_name)s.%(suffix)s"']
+    #call(rip_cmd)
+    output_tracks=[]
+    for i, val in enumerate(input_filenames):
+        output_tracks.append([AudioType,
+            val,
+            8, #default quality for flac
+            cd_infos[0][i]] #metadata choice
+            )
+
+    track_offset = track_offsets
+
+    for o in output_tracks:
+        print "elemento"
+        print o
+
+
+    sys.exit('aa')
+
+def crea_cartelle(artist, album):
     basefolder = os.path.join(os.path.expanduser("~"), "test")
     artist_fpath = os.path.join(basefolder, artist)
     if not os.path.exists(artist_fpath):
@@ -44,11 +76,6 @@ def main(argv):
     if not os.path.exists(mp3_fpath):
         print "Mp3 sub-folder does not exist, will be created"
         os.makedirs(mp3_fpath)
-
-    # rippa le tracce del CD dentro quella cartella
-    rip_cmd = ['cd2track', '-t', 'flac', '-d', flac_fpath]
-    call(rip_cmd)
-
 
 
 
